@@ -32,6 +32,8 @@
 *.ipr
 *.iws
 
+
+
 ## Plugin-specific files:
 
 # IntelliJ
@@ -74,3 +76,8 @@ _testmain.go
 *.exe
 *.test
 *.prof
+
+
+#Custom
+*.vpp
+*.sh
