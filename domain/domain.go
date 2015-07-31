@@ -11,6 +11,10 @@ import (
 
 var database gorm.DB
 
+type ValidableEntity interface {
+	HasValidId() bool
+}
+
 type Survey struct {
 	Id           int    `gorm:"primary_key"`
 	Name         string `validate:"nonzero"`
@@ -18,6 +22,10 @@ type Survey struct {
 	ValidTo      int64
 	SurveyTypeId int `validate:"nonzero"`
 	Questions    []Question
+}
+
+func (survey *Survey) HasValidId() bool {
+	return survey.Id != 0
 }
 
 type Question struct {
@@ -28,11 +36,19 @@ type Question struct {
 	AnswerTemplates []AnswerTemplate
 }
 
+func (question *Question) HasValidId() bool {
+	return question.Id != 0
+}
+
 type AnswerTemplate struct {
-	Id             int    `gorm:"primary_key"`
-	Question_value string //TODO prejmenovat ??
-	QuestionId     int
-	Question       Question
+	Id          int `gorm:"primary_key"`
+	AnswerValue string
+	QuestionId  int
+	Question    Question
+}
+
+func (answerTemplate *AnswerTemplate) HasValidId() bool {
+	return answerTemplate.Id != 0
 }
 
 type Answer struct {
@@ -40,17 +56,25 @@ type Answer struct {
 	QuestionId       int
 	AnswerTemplateId int
 	IsFinal          bool
-	PersonId         int
+	PersonId         int `validate:"nonzero"`
 	AnswerTime       int64
-	Question         Question
-	AnswerTemplate   AnswerTemplate
-	Person           Person
+	// Question         *Question
+	// AnswerTemplate   *AnswerTemplate
+	// Person           *Person
+}
+
+func (answer *Answer) HasValidId() bool {
+	return answer.Id != 0
 }
 
 type Person struct {
-	Id        int `gorm:"primary_key"`
-	FirstName string
-	LastName  string
+	Id        int    `gorm:"primary_key"`
+	FirstName string `validate:"nonzero"`
+	LastName  string `validate:"nonzero"`
+}
+
+func (person *Person) HasValidId() bool {
+	return person.Id != 0
 }
 
 //Function opens connection to database and function initDatabase
@@ -76,6 +100,7 @@ func initDatabase(database *gorm.DB) {
 	database.Model(&Answer{}).AddForeignKey("question_id", "questions", "CASCADE", "RESTRICT")
 	database.Model(&Answer{}).AddForeignKey("answer_template_id", "answer_templates", "CASCADE", "RESTRICT")
 	database.Model(&Answer{}).AddForeignKey("person_id", "persons", "CASCADE", "RESTRICT")
+
 }
 
 //Function to close database connection at the end of application.
@@ -86,15 +111,20 @@ func CloseDatabase() error {
 
 //Saves survey to database. Befoore it saves the object, the object
 //is validated. If validatiom fails, the ValidationError is thrown.
-func Save(object interface{}) error {
+func Save(object ValidableEntity) error {
 	if err := validator.Validate(object); err != nil {
 		//Validation failed throw wrapped typed error
 		return &ValidationError{
 			InternalError: err,
 		}
 	}
+
 	//Save whole object
 	database.Save(object)
+	if !object.HasValidId() {
+		return &OperationFailError{}
+	}
+
 	return nil
 }
 

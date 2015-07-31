@@ -9,3 +9,11 @@ type ValidationError struct {
 func (err *ValidationError) Error() string {
 	return "Object validation failed"
 }
+
+type OperationFailError struct {
+	InternalError error
+}
+
+func (err *OperationFailError) Error() string {
+	return "Database operation failed!"
+}

@@ -38,4 +38,5 @@ func defineRouting(router *gin.Engine) {
 	router.POST("/answer/new", CreateAnswer)
 	router.POST("/person/new", CreatePerson)
 	router.GET("/survey/:id", GetSurvey)
+	router.GET("/answer/:id", GetAnswer)
 }
