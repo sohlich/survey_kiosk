@@ -2,6 +2,7 @@ package domain
 
 import (
 	// "time"
+	// "fmt"
 	"log"
 
 	"github.com/jinzhu/gorm"
@@ -16,6 +17,7 @@ type Survey struct {
 	ValidFrom    int64
 	ValidTo      int64
 	SurveyTypeId int `validate:"nonzero"`
+	Questions    []Question
 }
 
 type Question struct {
@@ -94,5 +96,17 @@ func Save(object interface{}) error {
 	database.Save(object)
 
 	log.Println(object)
+	return nil
+}
+
+func Find(object interface{}, id int) error {
+	//Switch provides preloading based on type
+	switch object.(type) {
+	case *Survey:
+		database.Preload("Questions").Find(object, id)
+	default:
+		database.Find(object, id)
+	}
+
 	return nil
 }

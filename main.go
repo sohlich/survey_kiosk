@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/sohlich/survey_kiosk/domain"
-	"log"
+	// "log"
 )
 
 func IfPanic(err error) {
@@ -35,4 +35,7 @@ func defineRouting(router *gin.Engine) {
 	router.POST("/survey/new", CreateSurvey)
 	router.POST("/question/new", CreateQuestion)
 	router.POST("/answertemplate/new", CreateAnswerTemplate)
+	router.POST("/answer/new", CreateAnswer)
+	router.POST("/person/new", CreatePerson)
+	router.GET("/survey/:id", GetSurvey)
 }
