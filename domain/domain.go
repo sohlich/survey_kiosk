@@ -3,7 +3,7 @@ package domain
 import (
 	// "time"
 	// "fmt"
-	"log"
+	// "log"
 
 	"github.com/jinzhu/gorm"
 	"gopkg.in/validator.v2"
@@ -21,15 +21,16 @@ type Survey struct {
 }
 
 type Question struct {
-	Id       int `gorm:"primary_key"`
-	Value    string
-	SurveyId int
-	Survey   Survey
+	Id              int `gorm:"primary_key"`
+	Value           string
+	SurveyId        int
+	Survey          Survey
+	AnswerTemplates []AnswerTemplate
 }
 
 type AnswerTemplate struct {
-	Id             int `gorm:"primary_key"`
-	Question_value string
+	Id             int    `gorm:"primary_key"`
+	Question_value string //TODO prejmenovat ??
 	QuestionId     int
 	Question       Question
 }
@@ -92,10 +93,8 @@ func Save(object interface{}) error {
 			InternalError: err,
 		}
 	}
-
+	//Save whole object
 	database.Save(object)
-
-	log.Println(object)
 	return nil
 }
 
@@ -103,10 +102,9 @@ func Find(object interface{}, id int) error {
 	//Switch provides preloading based on type
 	switch object.(type) {
 	case *Survey:
-		database.Preload("Questions").Find(object, id)
+		database.Preload("Questions").Preload("Questions.AnswerTemplates").Find(object, id)
 	default:
 		database.Find(object, id)
 	}
-
 	return nil
 }
