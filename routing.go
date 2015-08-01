@@ -13,10 +13,10 @@ type Response struct {
 	Error  error
 }
 
-func CreateAnswerTemplate(ctx *gin.Context) {
-	answerTemplate := domain.AnswerTemplate{}
-	create(&answerTemplate, ctx)
-}
+// func CreateAnswerTemplate(ctx *gin.Context) {
+// 	answerTemplate := []domain.AnswerTemplate{}
+// 	create(&answerTemplate, ctx)
+// }
 
 func CreateAnswer(ctx *gin.Context) {
 	answer := domain.Answer{}
@@ -39,6 +39,8 @@ func CreatePerson(ctx *gin.Context) {
 	create(&person, ctx)
 }
 
+//General method to deserialize entity from JSON and if deserialization is sucessfull,
+//save to database.
 func create(entity domain.ValidableEntity, ctx *gin.Context) {
 	err := ctx.BindJSON(entity)
 	if IsError(err, ctx) {
@@ -49,16 +51,6 @@ func create(entity domain.ValidableEntity, ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(200, entity)
-}
-
-func IsError(err error, ctx *gin.Context) bool {
-
-	if err != nil {
-		log.Println(err)
-		ctx.JSON(405, Response{err.Error(), err})
-		return true
-	}
-	return false
 }
 
 func GetSurvey(ctx *gin.Context) {
@@ -73,4 +65,15 @@ func GetAnswer(ctx *gin.Context) {
 	answer := domain.Answer{Id: id}
 	_ = domain.Find(&answer, id)
 	ctx.JSON(200, answer)
+}
+
+//Detect if error, in case of error the response code 405
+// is returned and return value is true.
+func IsError(err error, ctx *gin.Context) bool {
+	if err != nil {
+		log.Println(err)
+		ctx.JSON(405, Response{err.Error(), err})
+		return true
+	}
+	return false
 }

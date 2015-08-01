@@ -1,15 +1,16 @@
 package domain
 
 import (
-	// "time"
-	// "fmt"
-	// "log"
-
 	"github.com/jinzhu/gorm"
 	"gopkg.in/validator.v2"
 )
 
-var database gorm.DB
+// wrap gorm database to custom type for testing
+type Database struct {
+	gorm.DB
+}
+
+var database Database
 
 type ValidableEntity interface {
 	HasValidId() bool
@@ -32,7 +33,7 @@ type Question struct {
 	Id              int `gorm:"primary_key"`
 	Value           string
 	SurveyId        int
-	Survey          Survey
+	Survey          *Survey
 	AnswerTemplates []AnswerTemplate
 }
 
@@ -44,7 +45,7 @@ type AnswerTemplate struct {
 	Id          int `gorm:"primary_key"`
 	AnswerValue string
 	QuestionId  int
-	Question    Question
+	Question    *Question
 }
 
 func (answerTemplate *AnswerTemplate) HasValidId() bool {
@@ -80,14 +81,14 @@ func (person *Person) HasValidId() bool {
 //Function opens connection to database and function initDatabase
 // will initialize database schema.
 func OpenDatabase(connectionString string) error {
-	var err error
-	database, err = gorm.Open("postgres", connectionString)
+	db, err := gorm.Open("postgres", connectionString)
+	database = Database{db}
 	initDatabase(&database)
 	return err
 }
 
 //Function to create schema and ensure indexes.
-func initDatabase(database *gorm.DB) {
+func initDatabase(database *Database) {
 	database.CreateTable(&Survey{})
 	database.CreateTable(&Question{})
 	database.CreateTable(&Person{})
@@ -120,7 +121,7 @@ func Save(object ValidableEntity) error {
 	}
 
 	//Save whole object
-	database.Save(object)
+	database.Create(object)
 	if !object.HasValidId() {
 		return &OperationFailError{}
 	}
